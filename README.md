@@ -2,7 +2,7 @@
 
 *Independent research into an undocumented IoT device class*
 
-\---
+---
 
 ## Overview
 
@@ -12,7 +12,7 @@ Despite handling sensitive biometric data, uAttend/Workwell Technologies has no 
 
 This repository documents an independent research project examining common authentication and access-control patterns likely present in this device class, built and tested against a self-created replica rather than a live device.
 
-\---
+---
 
 ## Methodology
 
@@ -23,7 +23,7 @@ This research followed a four-stage approach:
 3. **Proof-of-Concept Build**: Constructed a lightweight Flask application replicating the authentication and data-handling patterns inferred from documentation, to validate whether the suspected weaknesses would produce exploitable behavior in practice.
 4. **Validation**: Tested each hypothesized vulnerability against the replica using both custom Python scripting and industry-standard tooling (Hydra), to confirm findings with reproducible evidence.
 
-\---
+---
 
 ## Lab Setup Challenges
 
@@ -33,11 +33,11 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 * **Scope decision**: The original lab design called for a three-VM network simulation (pfSense as network segment, Kali as attacker, separate Ubuntu VM as target device). This was scoped down to a single Kali VM running the vulnerable Flask replica locally, since a single-VM setup was sufficient to demonstrate and prove all four vulnerabilities — each finding lives at the application layer, not the network layer, so full network segmentation wasn't required to validate them.
 * **Environment cleanup**: Package management (`apt upgrade`) and port conflicts (Flask dev server holding port 5000 across restarts) required basic Linux process management (`fuser`, `pkill`) to keep the test environment stable during iterative development.
 
-\---
+---
 
 ## Findings
 
-### 1\. Weak PIN Authentication
+### 1. Weak PIN Authentication
 
 **Description:** The JR2000's admin authentication relies on a single 5-digit numeric PIN, user-set during initial device setup with no enforced complexity requirements or forced rotation policy documented in the manual.
 
@@ -47,11 +47,11 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 
 **Evidence:**
 
-!\[Invalid PIN and successful login](screenshots/pin-login.png)
+![Invalid PIN and successful login](screenshots/pin-login.png)
 
-\---
+---
 
-### 2\. No Rate Limiting / Brute-Force Protection
+### 2. No Rate Limiting / Brute-Force Protection
 
 **Description:** The login endpoint imposes no lockout, delay, or attempt-limiting mechanism, allowing unlimited sequential authentication attempts.
 
@@ -64,15 +64,15 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 
 **Evidence:**
 
-!\[Python brute-force script output](screenshots/bruteforce-python.png)
+![Python brute-force script output](screenshots/bruteforce-python.png)
 
-!\[Hydra confirmation output](screenshots/hydra-confirm.png)
+![Hydra confirmation output](screenshots/hydra-confirm.png)
 
-\---
+---
 
-### 3\. Broken Access Control
+### 3. Broken Access Control
 
-**Description:** The network configuration save endpoint (`/save\_config`) performed no session or authentication validation, it could be reached directly via a crafted request, entirely bypassing the PIN login screen.
+**Description:** The network configuration save endpoint (`/save_config`) performed no session or authentication validation, it could be reached directly via a crafted request, entirely bypassing the PIN login screen.
 
 **Impact:** An attacker who discovers or guesses the endpoint path can modify device network configuration (SSID, WiFi credentials, server IP) without ever authenticating.
 
@@ -82,15 +82,15 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 
 *The legitimate config panel, reached normally via the PIN login:*
 
-!\[Network configuration panel](screenshots/config-panel.png)
+![Network configuration panel](screenshots/config-panel.png)
 
 *The same endpoint reached directly via curl, with zero authentication:*
 
-!\[Curl bypass and Config Saved response](screenshots/curl-bypass.png)
+![Curl bypass and Config Saved response](screenshots/curl-bypass.png)
 
-\---
+---
 
-### 4\. Unauthenticated, Unencrypted Cloud Sync Exposure
+### 4. Unauthenticated, Unencrypted Cloud Sync Exposure
 
 **Description:** A cloud-sync status endpoint exposed device metadata (device ID, sync timestamps, employee/fingerprint record counts, sync endpoint URL) without requiring authentication, and explicitly noted transmission occurs over unencrypted HTTP with no TLS certificate validation.
 
@@ -100,9 +100,9 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 
 **Evidence:**
 
-!\[Cloud sync log page](screenshots/cloud-sync.png)
+![Cloud sync log page](screenshots/cloud-sync.png)
 
-\---
+---
 
 ## Recommendations
 
@@ -115,7 +115,7 @@ Building the testing environment surfaced a few real-world obstacles worth docum
 
 These are standard, low-cost mitigations — none require significant architectural changes, which makes their absence in budget IoT devices more a design oversight than a technical limitation.
 
-\---
+---
 
 ## Disclaimer
 
